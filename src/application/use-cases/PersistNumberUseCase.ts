@@ -18,8 +18,10 @@ export class PersistNumberUseCase {
 
     const number = Number(value);
 
-    if (number < 0 || number > 100) {
-      throw new ValueOutOfRangeException();
+    const min = 0;
+    const max = 100;
+    if (number < min || number > max) {
+      throw new ValueOutOfRangeException({ params: { min, max, value: number } });
     }
 
     this.userNumberRepository.setByUserId(provider.userId, number);

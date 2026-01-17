@@ -1,8 +1,17 @@
 export class FileSizeOverflowException extends Error {
   constructor(
-    message = "File size extends accepted size. Please upload a file up to 5 MB."
+    data?: {
+      message?: string;
+      params?: { maxSizeInBytes?: number; sizeInBytes?: number };
+    }
   ) {
-    super(message);
+    const { maxSizeInBytes, sizeInBytes } = data?.params ?? {};
+    const fallbackMessage =
+      maxSizeInBytes || sizeInBytes
+        ? `File size extends accepted size. Received ${sizeInBytes ?? "unknown"} bytes (max ${maxSizeInBytes ?? "unknown"}).`
+        : "File size extends accepted size. Please upload a file up to 5 MB.";
+
+    super(data?.message ?? fallbackMessage);
     this.name = FileSizeOverflowException.name;
   }
 }

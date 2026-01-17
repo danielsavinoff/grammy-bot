@@ -3,7 +3,7 @@ import type {
   ProviderSource,
 } from "../../domain/provider/Provider.ts";
 import type { UserStep } from "../../domain/user-step/UserStep.ts";
-import { FileNotImageException } from "../exceptions/FileNotImageException.ts";
+import { MimeNotSupportedException } from "../exceptions/MimeNotSupportedException.ts";
 import { FileSizeOverflowException } from "../exceptions/FileSizeOverflowException.ts";
 import { NoFileAttachedException } from "../exceptions/NoFileAttachedException.ts";
 import type { DownloadableFileModel } from "../model/DownloadableFileModel.ts";
@@ -39,14 +39,19 @@ export class PersistImageUseCase {
 
     const size = downloadableFile.sizeInBytes;
 
-    if (!size || size > 5 * 2 ** 20) {
-      throw new FileSizeOverflowException();
+    const maxSizeInBytes = 5 * 2 ** 20;
+    if (!size || size > maxSizeInBytes) {
+      throw new FileSizeOverflowException({
+        params: { maxSizeInBytes, sizeInBytes: size },
+      });
     }
 
     const mime = downloadableFile.mime;
 
     if (!mime || !this.imageMime.includes(mime)) {
-      throw new FileNotImageException();
+      throw new MimeNotSupportedException({
+        params: { mime, supported: this.imageMime },
+      });
     }
 
     const stream = await this.externalFileRepository.download(downloadableFile);
