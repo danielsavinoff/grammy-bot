@@ -6,18 +6,31 @@ export interface TelegramGetNumbersViewModel {
 }
 
 export class TelegramGetNumbersPresenter {
-  present(numbers: number[]): TelegramGetNumbersViewModel {
+  present(
+    numbers: number[],
+    currentPage: number,
+    total: number
+  ): TelegramGetNumbersViewModel {
     const keyboard = new InlineKeyboard();
-    const pageNumbers = numbers.slice(0, 8);
 
-    pageNumbers.forEach((number, index) => {
-      keyboard.text(number.toString(), `choose_number:${number}`);
+    numbers.forEach((number, index) => {
+      keyboard.text(number.toString(), String(number));
       if ((index + 1) % 4 === 0) {
         keyboard.row();
       }
     });
 
-    keyboard.row().text("Back", "numbers:back").text("Next", "numbers:next");
+    const hasBack = currentPage > 1;
+    const hasNext = currentPage < total;
+    if (hasBack || hasNext) {
+      const navRow = keyboard.row();
+      if (hasBack) {
+        navRow.text("Back", `choose_number:${currentPage - 1}`);
+      }
+      if (hasNext) {
+        navRow.text("Next", `choose_number:${currentPage + 1}`);
+      }
+    }
 
     return {
       text: "Choose a number:",

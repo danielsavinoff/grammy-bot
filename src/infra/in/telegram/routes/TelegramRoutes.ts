@@ -1,4 +1,4 @@
-import { Bot, type Context } from "grammy";
+import { Bot, GrammyError, type Context } from "grammy";
 import type { UserStep } from "../../../../domain/user-step/UserStep.ts";
 import type { FindUserByExternalIdentityUseCase } from "../../../../application/use-cases/FindUserUseCase.ts";
 import type { User } from "../../../../domain/user/User.ts";
@@ -171,44 +171,129 @@ export class TelegramRoutes {
         }
       }
 
-      switch (nextStep) {
-        case "registration_fill_in_name": {
-          const viewModel = this.telegramRegistrationPresenter.present();
-          return ctx.reply(viewModel.text);
+      await this.handleNextStep(nextStep, user, ctx);
+    });
+
+    bot.callbackQuery(/^choose_number:(\d+)$/, async (ctx) => {
+      try {
+        const page = Number(ctx.match[1]);
+        const limit = 8;
+
+        const result = this.getNumbers.execute(page, limit);
+        const viewModel = this.getNumbersPresenter.present(
+          result.numbers,
+          page,
+          Math.ceil(result.total / 8)
+        );
+
+        await ctx.answerCallbackQuery();
+
+        await ctx.editMessageReplyMarkup({
+          reply_markup: viewModel.replyMarkup,
+        });
+      } catch (err) {
+        if (
+          err instanceof GrammyError &&
+          err.description?.includes("message is not modified")
+        ) {
+          return;
         }
+
+        throw err;
+      }
+    });
+
+    bot.callbackQuery(/.*/, async (ctx) => {
+      const step = ctx.state.step;
+
+      if (!step) {
+        return;
+      }
+
+      const user = ctx.state.user;
+
+      if (!user) {
+        return;
+      }
+
+      const externalId = String(ctx.from.id);
+
+      const data = ctx.callbackQuery.data;
+      let nextStep: UserStep | undefined;
+
+      switch (step) {
         case "choose_number": {
-          const numbers = this.getNumbers.execute();
-          const viewModel = this.getNumbersPresenter.present(numbers);
-          return ctx.reply(viewModel.text, {
-            reply_markup: viewModel.replyMarkup,
-          });
-        }
-        case "upload_image": {
-          const viewModel = this.telegramUploadImagePresenter.present();
-          return ctx.reply(viewModel.text);
-        }
-        case "result": {
           try {
-            const result = await this.getResult.execute(user?.id);
-            const viewModel = this.telegramGetResultPresenter.present(
-              result.text,
-              result.file
+            nextStep = this.persistNumber.execute(
+              {
+                externalId: externalId,
+                source: this.source,
+                userId: user.id,
+              },
+              data
             );
-            return ctx.replyWithPhoto(viewModel.file, {
-              caption: viewModel.text,
-            });
+            break;
           } catch (err) {
-            if (err instanceof UserNotFoundException) {
+            if (err instanceof ValueNotNumberException) {
               return ctx.reply(err.message);
             }
-            if (err instanceof ResultNotFoundException) {
+            if (err instanceof ValueOutOfRangeException) {
               return ctx.reply(err.message);
             }
 
             throw err;
           }
         }
+        default:
+          return;
       }
+
+      await this.handleNextStep(nextStep, user, ctx);
     });
+  }
+
+  async handleNextStep(nextStep: UserStep, user?: User, ctx?: any) {
+    switch (nextStep) {
+      case "registration_fill_in_name": {
+        const viewModel = this.telegramRegistrationPresenter.present();
+        return ctx.reply(viewModel.text);
+      }
+      case "choose_number": {
+        const result = this.getNumbers.execute(1, 8);
+        const viewModel = this.getNumbersPresenter.present(
+          result.numbers,
+          1,
+          Math.ceil(result.total / 8)
+        );
+        return ctx.reply(viewModel.text, {
+          reply_markup: viewModel.replyMarkup,
+        });
+      }
+      case "upload_image": {
+        const viewModel = this.telegramUploadImagePresenter.present();
+        return ctx.reply(viewModel.text);
+      }
+      case "result": {
+        try {
+          const result = await this.getResult.execute(user?.id);
+          const viewModel = this.telegramGetResultPresenter.present(
+            result.text,
+            result.file
+          );
+          return ctx.replyWithPhoto(viewModel.file, {
+            caption: viewModel.text,
+          });
+        } catch (err) {
+          if (err instanceof UserNotFoundException) {
+            return ctx.reply(err.message);
+          }
+          if (err instanceof ResultNotFoundException) {
+            return ctx.reply(err.message);
+          }
+
+          throw err;
+        }
+      }
+    }
   }
 }

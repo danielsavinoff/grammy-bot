@@ -1,11 +1,19 @@
 export class GetNumbersUseCase {
-  execute(page: number = 1, limit: number = 10) {
-    const numbers = [];
+  private total = 100;
 
-    for (let i = (page - 1) * limit; i < page * limit; i++) {
+  execute(page: number = 1, limit: number = 10) {
+    const numbers: number[] = [];
+
+    const start = (page - 1) * limit + 1;
+    const end = Math.min(page * limit, this.total);
+
+    for (let i = start; i <= end; i++) {
       numbers.push(i);
     }
 
-    return numbers;
+    return {
+      numbers: numbers,
+      total: this.total,
+    };
   }
 }
