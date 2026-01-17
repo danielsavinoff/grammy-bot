@@ -18,6 +18,8 @@ import { TelegramUploadImagePresenter } from "../presenters/TelegramUploadImageP
 import { GetResultUseCase } from "../../../../application/use-cases/GetResultUseCase.ts";
 import { TelegramDocumentToFileMapper } from "../mappers/TelegramDocumentToFileMapper.ts";
 import { NoFileAttachedException } from "../../../../application/exceptions/NoFileAttachedException.ts";
+import { FileSizeOverflowException } from "../../../../application/exceptions/FileSizeOverflowException.ts";
+import type { FileFlavor } from "@grammyjs/files";
 
 export interface BotState {
   user?: User;
@@ -32,7 +34,7 @@ export class TelegramRoutes {
   private readonly source: ProviderSource = "TELEGRAM";
 
   constructor(
-    private readonly bot: Bot<TelegramContext>,
+    private readonly bot: Bot<FileFlavor<TelegramContext>>,
 
     private readonly findUserByExternalIdentity: FindUserByExternalIdentityUseCase,
     private readonly findExternalUserStep: FindExternalUserStepUseCase,
@@ -73,7 +75,7 @@ export class TelegramRoutes {
       await next();
     });
 
-    this.bot.on("message", (ctx) => {
+    this.bot.on("message", async (ctx) => {
       const externalId = ctx.from.id.toString();
       const user = ctx.state.user;
       const step = ctx.state.step;
@@ -87,9 +89,12 @@ export class TelegramRoutes {
               const file = ctx.msg.document;
               const downloadableFile = this.telegramDocumentToFile.map(file);
 
-              nextStep = this.persistImage.execute(
-                externalId,
-                this.source,
+              nextStep = await this.persistImage.execute(
+                {
+                  externalId: externalId,
+                  source: this.source,
+                  userId: user.id,
+                },
                 downloadableFile
               );
               break;
@@ -97,6 +102,11 @@ export class TelegramRoutes {
               if (err instanceof NoFileAttachedException) {
                 return ctx.reply(err.message);
               }
+              if (err instanceof FileSizeOverflowException) {
+                return ctx.reply(err.message);
+              }
+
+              throw err;
             }
           }
           case "choose_number": {

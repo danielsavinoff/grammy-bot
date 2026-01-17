@@ -5,6 +5,7 @@ import {
 } from "./infra/in/telegram/routes/TelegramRoutes.ts";
 import { LocalUserRepository } from "./infra/out/persistence/repositories/LocalUserRepository.ts";
 import { LocalUserStepRepository } from "./infra/out/persistence/repositories/LocalUserStepRepository.ts";
+import { LocalFileStorageRepository } from "./infra/out/persistence/repositories/LocalFileStorageRepository.ts";
 import { FindUserByExternalIdentityUseCase } from "./application/use-cases/FindUserUseCase.ts";
 import { FindExternalUserStepUseCase } from "./application/use-cases/FindUserStepUseCase.ts";
 import { StartUserRegistrationUseCase } from "./application/use-cases/StartUserRegistrationUseCase.ts";
@@ -17,6 +18,9 @@ import { TelegramRegistrationPresenter } from "./infra/in/telegram/presenters/Te
 import { TelegramUploadImagePresenter } from "./infra/in/telegram/presenters/TelegramUploadImagePresenter.ts";
 import { GetResultUseCase } from "./application/use-cases/GetResultUseCase.ts";
 import { TelegramDocumentToFileMapper } from "./infra/in/telegram/mappers/TelegramDocumentToFileMapper.ts";
+import { TelegramFileRepository } from "./infra/in/telegram/repositories/TelegramFileRepository.ts";
+import { type FileFlavor } from "@grammyjs/files";
+import { LocalFileInfoRepository } from "./infra/out/persistence/repositories/LocalFileInfoRepository.ts";
 
 const token = process.env.BOT_AUTHENTICATION_TOKEN;
 
@@ -24,10 +28,13 @@ if (!token) {
   throw new Error("BOT_AUTHENTICATION_TOKEN is required");
 }
 
-const bot = new Bot<TelegramContext>(token);
+const bot = new Bot<FileFlavor<TelegramContext>>(token);
 
 const userRepository = new LocalUserRepository();
 const userStepRepository = new LocalUserStepRepository();
+const telegramFileRepository = new TelegramFileRepository(bot);
+const localFileStorageRepository = new LocalFileStorageRepository();
+const localFileInfoRepository = new LocalFileInfoRepository();
 
 const findUserByExternalIdentity = new FindUserByExternalIdentityUseCase(
   userRepository
@@ -42,7 +49,12 @@ const completeRegistration = new CompleteUserRegistrationUseCase(
   userRepository,
   userStepRepository
 );
-const persistImage = new PersistImageUseCase(userStepRepository);
+const persistImage = new PersistImageUseCase(
+  userStepRepository,
+  telegramFileRepository,
+  localFileStorageRepository,
+  localFileInfoRepository
+);
 const persistNumber = new PersistNumberUseCase(userStepRepository);
 const getNumbers = new GetNumbersUseCase();
 const getResult = new GetResultUseCase();

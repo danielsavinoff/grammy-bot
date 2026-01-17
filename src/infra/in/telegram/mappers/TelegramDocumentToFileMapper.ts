@@ -11,6 +11,7 @@ export class TelegramDocumentToFileMapper {
       id: file.file_id,
       mime: file.mime_type,
       sizeInBytes: file.file_size,
+      original: true,
     };
   }
 }
