@@ -1,6 +1,7 @@
 export class EmptyMimeException extends Error {
-  constructor(message = "Empty mime.") {
-    super(message);
+  constructor(data?: { message?: string }) {
+    const fallbackMessage = "Empty mime.";
+    super(data?.message ?? fallbackMessage);
     this.name = EmptyMimeException.name;
   }
 }

@@ -1,6 +1,7 @@
 export class ResultNotFoundException extends Error {
-  constructor(message = "Result was not found.") {
-    super(message);
+  constructor(data?: { message?: string }) {
+    const fallbackMessage = "Result was not found.";
+    super(data?.message ?? fallbackMessage);
     this.name = ResultNotFoundException.name;
   }
 }

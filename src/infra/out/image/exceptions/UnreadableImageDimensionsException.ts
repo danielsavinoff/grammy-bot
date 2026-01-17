@@ -1,6 +1,7 @@
 export class UnreadableImageDimensionsException extends Error {
-  constructor(message = "Could not read image dimensions.") {
-    super(message);
+  constructor(data?: { message?: string }) {
+    const fallbackMessage = "Could not read image dimensions.";
+    super(data?.message ?? fallbackMessage);
     this.name = UnreadableImageDimensionsException.name;
   }
 }
