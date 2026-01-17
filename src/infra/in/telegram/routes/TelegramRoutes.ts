@@ -21,6 +21,7 @@ import { NoFileAttachedException } from "../../../../application/exceptions/NoFi
 import { FileSizeOverflowException } from "../../../../application/exceptions/FileSizeOverflowException.ts";
 import type { FileFlavor } from "@grammyjs/files";
 import { FileNotImageException } from "../../../../application/exceptions/FileNotImageException.ts";
+import { TelegramGetResultPresenter } from "../presenters/TelegramGetResultPresenter.ts";
 
 export interface BotState {
   user?: User;
@@ -49,8 +50,9 @@ export class TelegramRoutes {
     private readonly getNumbersPresenter: TelegramGetNumbersPresenter,
     private readonly telegramRegistrationPresenter: TelegramRegistrationPresenter,
     private readonly telegramUploadImagePresenter: TelegramUploadImagePresenter,
+    private readonly telegramGetResultPresenter: TelegramGetResultPresenter,
 
-    private readonly telegramDocumentToFile: TelegramDocumentToFileMapper
+    private readonly telegramDocumentToFileMapper: TelegramDocumentToFileMapper
   ) {
     this.bot.use(async (ctx, next) => {
       if (!ctx.from) return next();
@@ -88,7 +90,8 @@ export class TelegramRoutes {
           case "upload_image": {
             try {
               const file = ctx.msg.document;
-              const downloadableFile = this.telegramDocumentToFile.map(file);
+              const downloadableFile =
+                this.telegramDocumentToFileMapper.map(file);
 
               nextStep = await this.persistImage.execute(
                 {
@@ -116,8 +119,11 @@ export class TelegramRoutes {
           case "choose_number": {
             try {
               nextStep = this.persistNumber.execute(
-                externalId,
-                this.source,
+                {
+                  externalId: externalId,
+                  source: this.source,
+                  userId: user.id,
+                },
                 ctx.msg.text
               );
               break;
@@ -132,6 +138,8 @@ export class TelegramRoutes {
               throw err;
             }
           }
+          default:
+            nextStep = "result";
         }
       } else {
         switch (step) {
@@ -178,7 +186,14 @@ export class TelegramRoutes {
           return ctx.reply(viewModel.text);
         }
         case "result": {
-          // const result = this.getResult.execute();
+          const result = await this.getResult.execute(user?.id);
+          const viewModel = this.telegramGetResultPresenter.present(
+            result.text,
+            result.file
+          );
+          return ctx.replyWithPhoto(viewModel.file, {
+            caption: viewModel.text,
+          });
         }
       }
     });

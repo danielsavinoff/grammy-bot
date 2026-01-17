@@ -1,4 +1,4 @@
-import type { Provider } from "../provider/Provider";
+import type { Provider } from "../provider/Provider.ts";
 
 export interface User {
   id: string;

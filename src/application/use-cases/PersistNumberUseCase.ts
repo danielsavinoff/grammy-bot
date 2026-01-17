@@ -1,17 +1,17 @@
-import type { ProviderSource } from "../../domain/provider/Provider.ts";
+import type { Provider } from "../../domain/provider/Provider.ts";
 import type { UserStep } from "../../domain/user-step/UserStep.ts";
 import { ValueNotNumberException } from "../exceptions/ValueNotNumberException.ts";
 import { ValueOutOfRangeException } from "../exceptions/ValueOutOfRangeException.ts";
+import type { UserNumberRepositoryPort } from "../ports/UserNumberRepositoryPort.ts";
 import type { UserStepRepositoryPort } from "../ports/UserStepRepositoryPort.ts";
 
 export class PersistNumberUseCase {
-  constructor(private readonly userStepRepository: UserStepRepositoryPort) {}
+  constructor(
+    private readonly userStepRepository: UserStepRepositoryPort,
+    private readonly userNumberRepository: UserNumberRepositoryPort
+  ) {}
 
-  execute(
-    externalId: string,
-    source: ProviderSource,
-    value: unknown
-  ): UserStep {
+  execute(provider: Provider, value: unknown): UserStep {
     if (!this.isNumber(value)) {
       throw new ValueNotNumberException();
     }
@@ -22,10 +22,14 @@ export class PersistNumberUseCase {
       throw new ValueOutOfRangeException();
     }
 
-    // store number
+    this.userNumberRepository.setByUserId(provider.userId, number);
 
     const step = "upload_image";
-    this.userStepRepository.setByExternalIdAndSource(externalId, source, step);
+    this.userStepRepository.setByExternalIdAndSource(
+      provider.externalId,
+      provider.source,
+      step
+    );
 
     return step;
   }

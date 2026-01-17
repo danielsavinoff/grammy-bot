@@ -1,4 +1,4 @@
-import type { UserNumberRepositoryPort } from "../../../../application/ports/UserNumberRepositoryPort";
+import type { UserNumberRepositoryPort } from "../../../../application/ports/UserNumberRepositoryPort.ts";
 
 export class LocalUserNumberRepository implements UserNumberRepositoryPort {
   private storage: Record<string, number> = {};

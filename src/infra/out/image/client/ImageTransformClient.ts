@@ -15,11 +15,12 @@ export class ImageTransformClient implements ImageTransformPort {
 
     const side = Math.min(meta.width, meta.height);
 
+    const left = Math.floor((meta.width - side) / 2);
+    const top = Math.floor((meta.height - side) / 2);
+
     const outputBuffer = await img
-      .resize(side, side, {
-        fit: "cover",
-        position: "centre",
-      })
+      .extract({ left, top, width: side, height: side })
+      .keepExif()
       .toBuffer();
 
     return Uint8Array.from(outputBuffer).buffer;

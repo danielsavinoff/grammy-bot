@@ -23,6 +23,9 @@ import { TelegramFileRepository } from "./infra/in/telegram/repositories/Telegra
 import { type FileFlavor } from "@grammyjs/files";
 import { LocalFileInfoRepository } from "./infra/out/persistence/repositories/LocalFileInfoRepository.ts";
 import { ImageTransformClient } from "./infra/out/image/client/ImageTransformClient.ts";
+import { LocalUserNumberRepository } from "./infra/out/persistence/repositories/LocalUserNumberRepository.ts";
+import { TelegramMessageSender } from "./infra/out/telegram/TelegramMessageSender.ts";
+import { TelegramGetResultPresenter } from "./infra/in/telegram/presenters/TelegramGetResultPresenter.ts";
 
 const token = process.env.BOT_AUTHENTICATION_TOKEN;
 
@@ -38,6 +41,8 @@ const telegramFileRepository = new TelegramFileRepository(bot);
 const localFileStorageRepository = new LocalFileStorageRepository();
 const localFileInfoRepository = new LocalFileInfoRepository();
 const imageTransformClient = new ImageTransformClient();
+const localUserNumberRepository = new LocalUserNumberRepository();
+const telegramMessageSender = new TelegramMessageSender(bot);
 
 const findUserByExternalIdentity = new FindUserByExternalIdentityUseCase(
   userRepository
@@ -52,15 +57,24 @@ const completeRegistration = new CompleteUserRegistrationUseCase(
   userRepository,
   userStepRepository
 );
-const persistNumber = new PersistNumberUseCase(userStepRepository);
+const persistNumber = new PersistNumberUseCase(
+  userStepRepository,
+  localUserNumberRepository
+);
 const getNumbers = new GetNumbersUseCase();
-const getResult = new GetResultUseCase();
+const getResult = new GetResultUseCase(
+  userRepository,
+  localFileInfoRepository,
+  localFileStorageRepository,
+  localUserNumberRepository
+);
 const processImage = new ProcessImageUseCase(
   userStepRepository,
   getResult,
   localFileStorageRepository,
   imageTransformClient,
-  localFileInfoRepository
+  localFileInfoRepository,
+  telegramMessageSender
 );
 const persistImage = new PersistImageUseCase(
   userStepRepository,
@@ -73,6 +87,7 @@ const persistImage = new PersistImageUseCase(
 const telegramGetNumbersPresenter = new TelegramGetNumbersPresenter();
 const telegramRegistrationPresenter = new TelegramRegistrationPresenter();
 const telegramUploadImagePresenter = new TelegramUploadImagePresenter();
+const telegramGetResultPresenter = new TelegramGetResultPresenter();
 
 const telegramDocumentToFileMapper = new TelegramDocumentToFileMapper();
 
@@ -89,6 +104,7 @@ new TelegramRoutes(
   telegramGetNumbersPresenter,
   telegramRegistrationPresenter,
   telegramUploadImagePresenter,
+  telegramGetResultPresenter,
   telegramDocumentToFileMapper
 );
 // new TelegramMessageSender(bot);

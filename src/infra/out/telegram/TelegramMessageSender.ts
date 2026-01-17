@@ -1,8 +1,10 @@
-import { Bot, InputFile, type Context } from "grammy";
+import { Bot, InputFile } from "grammy";
 import type { OutboundMessagePort } from "../../../application/ports/OutboundMessagePort.ts";
+import type { FileFlavor } from "@grammyjs/files";
+import type { TelegramContext } from "../../in/telegram/routes/TelegramRoutes.ts";
 
 export class TelegramMessageSender implements OutboundMessagePort {
-  constructor(private readonly bot: Bot<Context>) {}
+  constructor(private readonly bot: Bot<FileFlavor<TelegramContext>>) {}
 
   sendWithAttachment(
     externalId: string,
