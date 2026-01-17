@@ -1,5 +1,5 @@
-import { ExternalIdentityModel } from "../model/ExternalIdentityModel";
-import { UserStepRepositoryPort } from "../ports/UserStepRepositoryPort";
+import type { ExternalIdentityModel } from "../model/ExternalIdentityModel.ts";
+import type { UserStepRepositoryPort } from "../ports/UserStepRepositoryPort.ts";
 
 export class FindExternalUserStepUseCase {
   constructor(

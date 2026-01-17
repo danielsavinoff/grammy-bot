@@ -1,5 +1,5 @@
-import { ProviderSource } from "../../domain/provider/Provider";
-import { User } from "../../domain/user/User";
+import type { ProviderSource } from "../../domain/provider/Provider.ts";
+import type { User } from "../../domain/user/User.ts";
 
 export interface UserRepositoryPort {
   getByExternalIdAndSource(

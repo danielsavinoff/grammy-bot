@@ -1,5 +1,5 @@
-import { Bot, Context } from "grammy";
-import { OutboundMessagePort } from "../../../application/ports/OutboundMessagePort";
+import { Bot, type Context } from "grammy";
+import type { OutboundMessagePort } from '../../../application/ports/OutboundMessagePort.ts';
 
 export class TelegramMessageSender implements OutboundMessagePort {
   constructor(private readonly bot: Bot<Context>) {}

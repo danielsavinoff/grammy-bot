@@ -1,6 +1,6 @@
-import { ProviderSource } from "../../domain/provider/Provider";
-import { UserStep } from "../../domain/user-step/UserStep";
-import { UserStepRepositoryPort } from "../ports/UserStepRepositoryPort";
+import type { ProviderSource } from '../../domain/provider/Provider.ts';
+import type { UserStep } from '../../domain/user-step/UserStep.ts';
+import type { UserStepRepositoryPort } from '../ports/UserStepRepositoryPort.ts';
 
 export class StartUserRegistrationUseCase {
   constructor(private readonly userStepRepository: UserStepRepositoryPort) {}

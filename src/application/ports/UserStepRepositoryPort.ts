@@ -1,7 +1,7 @@
-import { ProviderSource } from "../../domain/provider/Provider";
-import { UserStep } from "../../domain/user-step/UserStep";
+import type { ProviderSource } from "../../domain/provider/Provider.ts";
+import type { UserStep } from "../../domain/user-step/UserStep.ts";
 
-export interface UserStepRepository {
+export interface UserStepRepositoryPort {
   getByExternalIdAndSource(
     externalId: string,
     source: ProviderSource

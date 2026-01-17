@@ -1,5 +1,5 @@
-import { ExternalIdentityModel } from "../model/ExternalIdentityModel";
-import { UserRepositoryPort } from "../ports/UserRepositoryPort";
+import type { ExternalIdentityModel } from "../model/ExternalIdentityModel.ts";
+import type { UserRepositoryPort } from "../ports/UserRepositoryPort.ts";
 
 export class FindUserByExternalIdentityUseCase {
   constructor(private readonly userRepository: UserRepositoryPort) {}
