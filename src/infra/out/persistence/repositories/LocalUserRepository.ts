@@ -6,23 +6,53 @@ import type { ProviderSource } from "../../../../domain/provider/Provider.ts";
 import type { User } from "../../../../domain/user/User.ts";
 
 export class LocalUserRepository implements UserRepositoryPort {
-  private readonly storage: Record<string, User> = {};
+  private readonly storage: User[] = [];
 
-  getByExternalIdAndSource(
+  findByExternalIdAndSource(
     externalId: string,
     source: ProviderSource
   ): User | null {
-    return this.storage[`${source}:${externalId}`] ?? null;
+    const user = this.storage.find((user) => {
+      const providers = user.providers;
+
+      if (!providers) {
+        return false;
+      }
+
+      const provider = providers.find(
+        (provider) =>
+          provider.externalId === externalId && provider.source === source
+      );
+
+      return Boolean(provider);
+    });
+
+    return user ?? null;
   }
 
   createUser(input: CreateUserInput): User {
+    const userId = crypto.randomUUID();
+
     const user: User = {
-      id: crypto.randomUUID(),
+      id: userId,
       firstName: input.firstName,
+      providers: [
+        {
+          externalId: input.externalId,
+          source: input.source,
+          userId: userId,
+        },
+      ],
     };
 
-    this.storage[`${input.source}:${input.externalId}`] = user;
+    this.storage.push(user);
 
     return user;
+  }
+
+  findById(id: string): User | null {
+    const user = this.storage.find((user) => user.id === id);
+
+    return user ?? null;
   }
 }

@@ -5,7 +5,7 @@ export class FindUserByExternalIdentityUseCase {
   constructor(private readonly userRepository: UserRepositoryPort) {}
 
   execute(input: ExternalIdentityModel) {
-    let user = this.userRepository.getByExternalIdAndSource(
+    let user = this.userRepository.findByExternalIdAndSource(
       input.externalId,
       input.source
     );

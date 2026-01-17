@@ -1,12 +1,13 @@
-import type { FileInfo } from "../../domain/file/FileInfo";
-import type { Provider } from "../../domain/provider/Provider";
-import type { UserStep } from "../../domain/user-step/UserStep";
-import type { DownloadableFileModel } from "../model/DownloadableFileModel";
-import type { FileInfoRepositoryPort } from "../ports/FileInfoRepositoryPort";
-import type { FileStorageRepositoryPort } from "../ports/FileStorageRepositoryPort";
-import type { ImageTransformPort } from "../ports/ImageTransformPort";
-import type { UserStepRepositoryPort } from "../ports/UserStepRepositoryPort";
-import { GetResultUseCase } from "./GetResultUseCase";
+import type { FileInfo } from "../../domain/file/FileInfo.ts";
+import type { Provider } from "../../domain/provider/Provider.ts";
+import type { UserStep } from "../../domain/user-step/UserStep.ts";
+import type { DownloadableFileModel } from "../model/DownloadableFileModel.ts";
+import type { FileInfoRepositoryPort } from "../ports/FileInfoRepositoryPort.ts";
+import type { FileStorageRepositoryPort } from "../ports/FileStorageRepositoryPort.ts";
+import type { ImageTransformPort } from "../ports/ImageTransformPort.ts";
+import type { OutboundMessagePort } from "../ports/OutboundMessagePort.ts";
+import type { UserStepRepositoryPort } from "../ports/UserStepRepositoryPort.ts";
+import { GetResultUseCase } from "./GetResultUseCase.ts";
 
 export class ProcessImageUseCase {
   constructor(
@@ -14,7 +15,8 @@ export class ProcessImageUseCase {
     private readonly getResult: GetResultUseCase,
     private readonly fileStorageRepository: FileStorageRepositoryPort,
     private readonly imageTransform: ImageTransformPort,
-    private readonly fileInfoRepository: FileInfoRepositoryPort
+    private readonly fileInfoRepository: FileInfoRepositoryPort,
+    private readonly outboundMessagePublisher: OutboundMessagePort
   ) {}
 
   async execute(provider: Provider, fileInfo: FileInfo) {
@@ -32,10 +34,7 @@ export class ProcessImageUseCase {
         processedBuffer,
         downloadableFile
       );
-    const processedFileInfo = this.fileInfoRepository.store(
-      provider.userId,
-      processedFileMetadata
-    );
+    this.fileInfoRepository.store(provider.userId, processedFileMetadata);
 
     const step: UserStep = "result";
 
@@ -45,6 +44,11 @@ export class ProcessImageUseCase {
       step
     );
 
-    this.getResult.execute();
+    const result = await this.getResult.execute(provider.userId);
+    this.outboundMessagePublisher.sendWithAttachment(
+      provider.externalId,
+      result.text,
+      result.file
+    );
   }
 }

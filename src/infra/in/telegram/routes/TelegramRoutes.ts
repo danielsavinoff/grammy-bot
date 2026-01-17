@@ -20,6 +20,7 @@ import { TelegramDocumentToFileMapper } from "../mappers/TelegramDocumentToFileM
 import { NoFileAttachedException } from "../../../../application/exceptions/NoFileAttachedException.ts";
 import { FileSizeOverflowException } from "../../../../application/exceptions/FileSizeOverflowException.ts";
 import type { FileFlavor } from "@grammyjs/files";
+import { FileNotImageException } from "../../../../application/exceptions/FileNotImageException.ts";
 
 export interface BotState {
   user?: User;
@@ -105,6 +106,9 @@ export class TelegramRoutes {
               if (err instanceof FileSizeOverflowException) {
                 return ctx.reply(err.message);
               }
+              if (err instanceof FileNotImageException) {
+                return ctx.reply(err.message);
+              }
 
               throw err;
             }
@@ -174,7 +178,7 @@ export class TelegramRoutes {
           return ctx.reply(viewModel.text);
         }
         case "result": {
-          const result = this.getResult.execute();
+          // const result = this.getResult.execute();
         }
       }
     });

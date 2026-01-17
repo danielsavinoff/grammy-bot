@@ -1,5 +1,5 @@
 import type { Document } from "grammy/types";
-import type { DownloadableFileModel } from "../../../../application/model/DownloadableFileModel";
+import type { DownloadableFileModel } from "../../../../application/model/DownloadableFileModel.ts"
 
 export class TelegramDocumentToFileMapper {
   map(file?: Document): DownloadableFileModel | undefined {

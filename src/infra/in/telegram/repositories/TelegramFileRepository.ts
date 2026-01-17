@@ -1,7 +1,7 @@
 import { Bot } from "grammy";
-import type { DownloadableFileModel } from "../../../../application/model/DownloadableFileModel";
-import type { ExternalFileRepositoryPort } from "../../../../application/ports/ExternalFileRepositoryPort";
-import type { TelegramContext } from "../routes/TelegramRoutes";
+import type { DownloadableFileModel } from "../../../../application/model/DownloadableFileModel.ts"
+import type { ExternalFileRepositoryPort } from "../../../../application/ports/ExternalFileRepositoryPort.ts"
+import type { TelegramContext } from "../routes/TelegramRoutes.ts"
 import { type FileFlavor, hydrateFiles } from "@grammyjs/files";
 
 export class TelegramFileRepository implements ExternalFileRepositoryPort {

@@ -13,6 +13,7 @@ import { CompleteUserRegistrationUseCase } from "./application/use-cases/Complet
 import { PersistImageUseCase } from "./application/use-cases/PersistImageUseCase.ts";
 import { PersistNumberUseCase } from "./application/use-cases/PersistNumberUseCase.ts";
 import { GetNumbersUseCase } from "./application/use-cases/GetNumbersUseCase.ts";
+import { ProcessImageUseCase } from "./application/use-cases/ProcessImageUseCase.ts";
 import { TelegramGetNumbersPresenter } from "./infra/in/telegram/presenters/TelegramGetNumbersPresenter.ts";
 import { TelegramRegistrationPresenter } from "./infra/in/telegram/presenters/TelegramRegistrationPresenter.ts";
 import { TelegramUploadImagePresenter } from "./infra/in/telegram/presenters/TelegramUploadImagePresenter.ts";
@@ -21,6 +22,7 @@ import { TelegramDocumentToFileMapper } from "./infra/in/telegram/mappers/Telegr
 import { TelegramFileRepository } from "./infra/in/telegram/repositories/TelegramFileRepository.ts";
 import { type FileFlavor } from "@grammyjs/files";
 import { LocalFileInfoRepository } from "./infra/out/persistence/repositories/LocalFileInfoRepository.ts";
+import { ImageTransformClient } from "./infra/out/image/client/ImageTransformClient.ts";
 
 const token = process.env.BOT_AUTHENTICATION_TOKEN;
 
@@ -35,6 +37,7 @@ const userStepRepository = new LocalUserStepRepository();
 const telegramFileRepository = new TelegramFileRepository(bot);
 const localFileStorageRepository = new LocalFileStorageRepository();
 const localFileInfoRepository = new LocalFileInfoRepository();
+const imageTransformClient = new ImageTransformClient();
 
 const findUserByExternalIdentity = new FindUserByExternalIdentityUseCase(
   userRepository
@@ -49,15 +52,23 @@ const completeRegistration = new CompleteUserRegistrationUseCase(
   userRepository,
   userStepRepository
 );
+const persistNumber = new PersistNumberUseCase(userStepRepository);
+const getNumbers = new GetNumbersUseCase();
+const getResult = new GetResultUseCase();
+const processImage = new ProcessImageUseCase(
+  userStepRepository,
+  getResult,
+  localFileStorageRepository,
+  imageTransformClient,
+  localFileInfoRepository
+);
 const persistImage = new PersistImageUseCase(
   userStepRepository,
   telegramFileRepository,
   localFileStorageRepository,
-  localFileInfoRepository
+  localFileInfoRepository,
+  processImage
 );
-const persistNumber = new PersistNumberUseCase(userStepRepository);
-const getNumbers = new GetNumbersUseCase();
-const getResult = new GetResultUseCase();
 
 const telegramGetNumbersPresenter = new TelegramGetNumbersPresenter();
 const telegramRegistrationPresenter = new TelegramRegistrationPresenter();

@@ -1,3 +1,7 @@
 export interface OutboundMessagePort {
-  send(externalId: string, message: string): void;
+  sendWithAttachment(
+    externalId: string,
+    message: string,
+    attachment: ArrayBuffer
+  ): void;
 }

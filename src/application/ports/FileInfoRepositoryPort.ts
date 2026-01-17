@@ -1,5 +1,5 @@
-import type { FileInfo } from "../../domain/file/FileInfo";
-import type { FileMetadata } from "../../domain/file/FileMetadata";
+import type { FileInfo } from "../../domain/file/FileInfo.ts"
+import type { FileMetadata } from "../../domain/file/FileMetadata.ts"
 
 export interface FindFileInfoData {
   userId: string;

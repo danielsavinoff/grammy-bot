@@ -1,5 +1,5 @@
-import type { FileMetadata } from "../../domain/file/FileMetadata";
-import type { DownloadableFileModel } from "../model/DownloadableFileModel";
+import type { FileMetadata } from "../../domain/file/FileMetadata.ts"
+import type { DownloadableFileModel } from "../model/DownloadableFileModel.ts"
 
 export interface FileStorageRepositoryPort {
   uploadFromStream(
