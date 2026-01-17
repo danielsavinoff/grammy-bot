@@ -22,6 +22,8 @@ import { FileSizeOverflowException } from "../../../../application/exceptions/Fi
 import type { FileFlavor } from "@grammyjs/files";
 import { MimeNotSupportedException } from "../../../../application/exceptions/MimeNotSupportedException.ts";
 import { TelegramGetResultPresenter } from "../presenters/TelegramGetResultPresenter.ts";
+import { ResultNotFoundException } from "../../../../application/exceptions/ResultNotFoundException.ts";
+import { UserNotFoundException } from "../../../../application/exceptions/UserNotFoundException.ts";
 
 export interface BotState {
   user?: User;
@@ -186,14 +188,25 @@ export class TelegramRoutes {
           return ctx.reply(viewModel.text);
         }
         case "result": {
-          const result = await this.getResult.execute(user?.id);
-          const viewModel = this.telegramGetResultPresenter.present(
-            result.text,
-            result.file
-          );
-          return ctx.replyWithPhoto(viewModel.file, {
-            caption: viewModel.text,
-          });
+          try {
+            const result = await this.getResult.execute(user?.id);
+            const viewModel = this.telegramGetResultPresenter.present(
+              result.text,
+              result.file
+            );
+            return ctx.replyWithPhoto(viewModel.file, {
+              caption: viewModel.text,
+            });
+          } catch (err) {
+            if (err instanceof UserNotFoundException) {
+              return ctx.reply(err.message);
+            }
+            if (err instanceof ResultNotFoundException) {
+              return ctx.reply(err.message);
+            }
+
+            throw err;
+          }
         }
       }
     });
